@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <title>Forgotten Equipment — Mars &amp; the Moon | Interactive 3D Archive</title>
+  <meta name="description" content="An interactive 3D archive of the rovers, landers, parachutes and monuments humanity has left behind on Mars and the Moon — built for the NASA Space Apps Challenge 2026.">
+  <meta name="theme-color" content="#020408">
+  <meta name="color-scheme" content="dark">
+
+  <!-- Social sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Forgotten Equipment — Mars &amp; the Moon">
+  <meta property="og:description" content="Explore 23 historic hardware sites on Mars and the Moon on an interactive 3D globe.">
+  <meta property="og:image" content="assets/images/card-mars.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23020408'/%3E%3Ccircle cx='32' cy='32' r='14' fill='%23ff4d26'/%3E%3Cellipse cx='32' cy='32' rx='26' ry='9' fill='none' stroke='%2300f0ff' stroke-width='3' transform='rotate(-25 32 32)'/%3E%3C/svg%3E">
+
+  <!-- Preload hero imagery -->
+  <link rel="preload" as="image" href="assets/images/card-mars.jpg">
+  <link rel="preload" as="image" href="assets/images/card-moon.jpg">
+
+  <!-- Google Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=2.2">
+
+  <!-- CDN Dependencies (version-pinned, deferred so the page paints first) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script defer src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+  <!-- Preloader -->
+  <div id="preloader" role="status" aria-live="polite">
+    <div class="preloader-orbit"><span></span></div>
+    <p class="preloader-label">Calibrating planetary archive</p>
+  </div>
+
+  <!-- Dynamic Radial Mouse Spotlight Tracker -->
+  <div class="radial-spotlight"></div>
+
+  <!-- Custom Cinematic Interactive Cursor -->
+  <div class="custom-cursor-dot"></div>
+  <div class="custom-cursor-ring"></div>
+
+  <!-- Film Grain / Deep Space Ambient Texture -->
+  <div class="cosmic-grain"></div>
+
+  <!-- Fullscreen WebGL Three.js Canvas -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- HTML Screen-Space 3D Projected Marker Pins -->
+  <div id="markers-container"></div>
+
+  <!-- =========================================================================
+       SCENE 1: THE LANDING & THE DUAL CHOICE
+       ========================================================================= -->
+  <section id="scene-landing">
+    <!-- Header -->
+    <header class="landing-header">
+      <div class="landing-badge">
+        <span class="pulse-dot"></span>
+        <span>NASA Space Apps 2026 // Archive Dossier</span>
+      </div>
+      <h1 class="landing-title">Forgotten Equipment</h1>
+      <p class="landing-subtitle">Silent monuments of human exploration resting on Mars and the Moon</p>
+    </header>
+
+    <!-- Dual-Card Selector with 3D Parallax Tilt -->
+    <div class="choice-container">
+      
+      <!-- Choice A: Mars -->
+      <article class="planet-card" id="card-mars" data-planet="mars" role="button" tabindex="0" aria-label="Explore equipment sites on Mars">
+        <div class="planet-card-bg"></div>
+        <div class="planet-card-glow"></div>
+        <div class="planet-card-content">
+          <span class="card-category">Planetary Frontier · 1971 – Present</span>
+          <h2 class="card-name">Mars</h2>
+          <p class="card-desc">
+            Explore 12 iconic sites: supersonic parachutes, scorched sky cranes, polar arctic landers, deep seismometers, and frozen rovers sleeping under iron-oxide dust across ancient lake basins.
+          </p>
+          <div class="card-meta-row">
+            <div class="card-stat">
+              <span class="card-stat-label">Sites Catalogued</span>
+              <span class="card-stat-value">12</span>
+            </div>
+            <div class="card-stat">
+              <span class="card-stat-label">Atmosphere</span>
+              <span class="card-stat-value">95.3% CO₂</span>
+            </div>
+            <div class="card-stat">
+              <span class="card-stat-label">Surface Gravity</span>
+              <span class="card-stat-value">0.38g</span>
+            </div>
+          </div>
+          <button class="card-cta-btn" type="button" tabindex="-1">
+            <span>Explore the Red Planet</span>
+            <i data-lucide="arrow-right"></i>
+          </button>
+        </div>
+      </article>
+
+      <!-- Choice B: The Moon -->
+      <article class="planet-card" id="card-moon" data-planet="moon" role="button" tabindex="0" aria-label="Explore equipment sites on the Moon">
+        <div class="planet-card-bg"></div>
+        <div class="planet-card-glow"></div>
+        <div class="planet-card-content">
+          <span class="card-category">Lunar Archive · 1959 – Present</span>
+          <h2 class="card-name">The Moon</h2>
+          <p class="card-desc">
+            Venture into the silent vacuum across 11 historic locations: Apollo gold-foil descent stages, the first automated rovers, Shepard's golf balls, polar landers, and Soviet impact medals.
+          </p>
+          <div class="card-meta-row">
+            <div class="card-stat">
+              <span class="card-stat-label">Sites Catalogued</span>
+              <span class="card-stat-value">11</span>
+            </div>
+            <div class="card-stat">
+              <span class="card-stat-label">Atmosphere</span>
+              <span class="card-stat-value">Hard Vacuum</span>
+            </div>
+            <div class="card-stat">
+              <span class="card-stat-label">Surface Gravity</span>
+              <span class="card-stat-value">0.165g</span>
+            </div>
+          </div>
+          <button class="card-cta-btn" type="button" tabindex="-1">
+            <span>Explore the Lunar Surface</span>
+            <i data-lucide="arrow-right"></i>
+          </button>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+      <div class="audio-launch-notice">
+        <i data-lucide="headphones"></i>
+        <span>Best experienced with headphones — the soundscape is synthesized live.</span>
+      </div>
+      <div class="footer-credits">
+        <span>Imagery: NASA / JPL-Caltech, MSSS, Univ. of Arizona, CNSA, ISRO &amp; Wikimedia Commons</span>
+      </div>
+    </footer>
+  </section>
+
+  <!-- =========================================================================
+       SCENE 2: 3D PLANETARY EXPLORER HUD
+       ========================================================================= -->
+  <section id="scene-explorer">
+    
+    <!-- Top Bar Navigation HUD -->
+    <nav class="hud-top-bar">
+      <!-- Brand & Home Button -->
+      <button class="hud-brand" id="hud-brand-btn" type="button" title="Back to destination selection" aria-label="Back to destination selection">
+        <span class="hud-logo-icon">
+          <i data-lucide="orbit"></i>
+        </span>
+        <span class="hud-brand-text">
+          <span class="hud-brand-title">Forgotten Equipment</span>
+          <span class="hud-brand-sub" id="hud-brand-planet">MARS RECON</span>
+        </span>
+      </button>
+
+      <!-- Celestial Body Switcher (Pills) -->
+      <div class="hud-switcher" role="group" aria-label="Choose celestial body">
+        <button class="switcher-pill active" id="btn-switch-mars" type="button">
+          <i data-lucide="flame"></i>
+          <span>Mars</span>
+        </button>
+        <button class="switcher-pill" id="btn-switch-moon" type="button">
+          <i data-lucide="moon"></i>
+          <span>The Moon</span>
+        </button>
+      </div>
+
+      <!-- Action Controls -->
+      <div class="hud-actions">
+        <!-- Planetary Scientific Specs Modal Toggle -->
+        <button class="hud-btn" id="btn-planet-specs" type="button" title="View In-Depth Planetary Science & Geological Eras">
+          <i data-lucide="compass"></i>
+          <span class="btn-label">Planetary Dossier</span>
+        </button>
+
+        <!-- Audio Synthesizer Toggle -->
+        <button class="hud-btn" id="btn-audio-toggle" type="button" title="Toggle Cosmic Synthesizer">
+          <div class="audio-waves">
+            <span class="audio-bar"></span>
+            <span class="audio-bar"></span>
+            <span class="audio-bar"></span>
+            <span class="audio-bar"></span>
+          </div>
+          <span class="btn-label" id="audio-status-label">AUDIO OFF</span>
+        </button>
+
+        <!-- Reset Orbit Camera -->
+        <button class="hud-btn" id="btn-reset-view" type="button" title="Reset Camera to Orbit">
+          <i data-lucide="refresh-cw"></i>
+          <span class="btn-label">Reset Orbit</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Side Telemetry Readout Widget -->
+    <aside class="hud-telemetry" aria-label="Planetary telemetry">
+      <div class="telemetry-row">
+        <span class="telemetry-label">Target Celestial Body</span>
+        <span class="telemetry-val highlight" id="hud-planet-name-val">Mars</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-label">Surface Gravity</span>
+        <span class="telemetry-val" id="hud-gravity-val">3.72 m/s² (0.38g)</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-label">Rotational Period</span>
+        <span class="telemetry-val" id="hud-day-val">24h 39m</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-label">Atmosphere</span>
+        <span class="telemetry-val" id="hud-atmos-val">95.3% CO₂</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-label">Mean Surface Temp</span>
+        <span class="telemetry-val" id="hud-temp-val">-63°C</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-label">Catalogued</span>
+        <span class="telemetry-val highlight" id="hud-sites-val">12 sites</span>
+      </div>
+    </aside>
+
+    <!-- Navigation Controls Hint -->
+    <div class="hud-controls-hint">
+      <div class="hint-item">
+        <kbd>Drag</kbd>
+        <span>Rotate Globe</span>
+      </div>
+      <div class="hint-item">
+        <kbd>Scroll</kbd>
+        <span>Zoom Altitude</span>
+      </div>
+      <div class="hint-item">
+        <kbd>Click Pin</kbd>
+        <span>Inspect Relic Dossier</span>
+      </div>
+    </div>
+
+    <!-- Bottom Relics Horizontal Drawer / Tray -->
+    <div class="hud-bottom-tray">
+      <div class="tray-header">
+        <div class="tray-title">
+          <span>Historical Equipment Sites</span>
+          <span class="tray-count" id="tray-relic-count">12</span>
+        </div>
+        <div class="tray-tools">
+          <span class="tray-hint">Scroll or use the arrows to browse</span>
+          <button class="hud-btn hud-btn-sm" id="btn-toggle-roster" type="button">
+            <i data-lucide="layout-grid"></i>
+            <span>View all</span>
+          </button>
+        </div>
+      </div>
+      <div class="tray-wrapper">
+        <button class="tray-arrow-btn" id="tray-arrow-left" type="button" aria-label="Scroll Left" title="Scroll Left">
+          <i data-lucide="chevron-left"></i>
+        </button>
+        <div class="tray-carousel" id="tray-carousel-target">
+          <!-- Dynamically injected via JavaScript -->
+        </div>
+        <button class="tray-arrow-btn" id="tray-arrow-right" type="button" aria-label="Scroll Right" title="Scroll Right">
+          <i data-lucide="chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- =========================================================================
+       RELIC DOSSIER MODAL (CINEMATIC HOLOGRAPHIC MISSION CARD)
+       ========================================================================= -->
+  <div id="relic-dossier-modal" role="dialog" aria-modal="true" aria-labelledby="dossier-title" aria-hidden="true">
+    <div class="dossier-window">
+      
+      <!-- Close Button -->
+      <button class="dossier-close-btn" id="dossier-close-x" type="button" aria-label="Close Dossier">
+        <i data-lucide="x"></i>
+      </button>
+
+      <!-- Left Visual / Photo Column -->
+      <div class="dossier-visual">
+        <div class="dossier-image" id="dossier-image-target" role="img"></div>
+        <div class="dossier-visual-top">
+          <span class="mission-tag" id="dossier-agency-tag">NASA / JPL • 2021</span>
+          <span class="mission-tag" id="dossier-site-tag">Jezero Crater</span>
+        </div>
+        <div class="dossier-visual-bottom">
+          <div class="dossier-quote-box">
+            <p class="dossier-quote" id="dossier-quote-text"></p>
+          </div>
+          <p class="dossier-credit" id="dossier-credit"></p>
+        </div>
+      </div>
+
+      <!-- Right Content / Narrative Column -->
+      <div class="dossier-body">
+        <div>
+          <div class="dossier-header">
+            <p class="dossier-pretitle">Artifact Dossier <span class="dossier-counter" id="dossier-counter">01 / 12</span></p>
+            <h2 class="dossier-title" id="dossier-title">Perseverance Sky Crane & Parachute</h2>
+          </div>
+
+          <!-- Dossier View Switcher Tabs -->
+          <div class="dossier-tab-bar" role="tablist">
+            <button class="dossier-tab-btn active" id="tab-btn-story" type="button" role="tab" aria-selected="true" aria-controls="dossier-tab-story-content">
+              <i data-lucide="book-open"></i>
+              <span>Mission Story</span>
+            </button>
+            <button class="dossier-tab-btn" id="tab-btn-geology" type="button" role="tab" aria-selected="false" aria-controls="dossier-tab-geology-content">
+              <i data-lucide="layers"></i>
+              <span>Geology &amp; Environment</span>
+            </button>
+          </div>
+
+          <!-- Interactive Scroll Hint / Helper -->
+          <button class="dossier-scroll-hint" id="dossier-scroll-hint" type="button">
+            <i data-lucide="chevrons-down"></i>
+            <span>Scroll for the full story</span>
+          </button>
+
+          <!-- TAB 1: Mission Story & Hardware -->
+          <div id="dossier-tab-story-content" class="dossier-tab-pane" role="tabpanel" aria-labelledby="tab-btn-story">
+            <!-- Telemetry Grid -->
+            <div class="dossier-grid">
+              <div class="dossier-grid-item">
+                <span class="dossier-grid-label">Arrival / Final Contact</span>
+                <span class="dossier-grid-val" id="dossier-date-val">February 18, 2021</span>
+              </div>
+              <div class="dossier-grid-item">
+                <span class="dossier-grid-label">Coordinates</span>
+                <span class="dossier-grid-val" id="dossier-coords-val">18.4447° N, 77.4508° E</span>
+              </div>
+              <div class="dossier-grid-item">
+                <span class="dossier-grid-label">Estimated Mass Left</span>
+                <span class="dossier-grid-val" id="dossier-mass-val">~1,050 kg</span>
+              </div>
+              <div class="dossier-grid-item">
+                <span class="dossier-grid-label">Original Program</span>
+                <span class="dossier-grid-val" id="dossier-mission-val">Mars 2020 Mission</span>
+              </div>
+            </div>
+
+            <!-- Artifact Inventory -->
+            <div class="dossier-artifacts">
+              <p class="artifacts-title">Documented Hardware & Relics</p>
+              <div class="artifacts-list" id="dossier-artifacts-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Narrative Prose Story -->
+            <div class="dossier-story">
+              <h3 class="dossier-story-title">The Story</h3>
+              <p class="dossier-story-text" id="dossier-story-p">
+                Scattered across the ancient lakebed of Jezero Crater lies the sacrificial armor that safely guided the Perseverance rover through seven minutes of atmospheric terror...
+              </p>
+            </div>
+          </div>
+
+          <!-- TAB 2: Geologic & Scientific Environment Analysis -->
+          <div id="dossier-tab-geology-content" class="dossier-tab-pane" role="tabpanel" aria-labelledby="tab-btn-geology" hidden>
+            <div class="geology-box">
+              <div class="geology-item">
+                <div class="geology-badge">
+                  <i data-lucide="map-pin"></i>
+                  <span>Surface Elevation Datum</span>
+                </div>
+                <h4 class="geology-highlight" id="dossier-elevation-val">-2,570 meters (relative to MOLA datum)</h4>
+              </div>
+
+              <div class="geology-item">
+                <div class="geology-badge">
+                  <i data-lucide="layers"></i>
+                  <span>Local Geologic Stratigraphy</span>
+                </div>
+                <p class="geology-text" id="dossier-geology-p">
+                  Fine-grained clay, mudstone, and smectite minerals deposited in a 3.7-billion-year-old river delta inside a Noachian impact basin.
+                </p>
+              </div>
+
+              <div class="geology-item">
+                <div class="geology-badge">
+                  <i data-lucide="thermometer-snowflake"></i>
+                  <span>Environmental & Thermal Dynamics</span>
+                </div>
+                <p class="geology-text" id="dossier-environment-p">
+                  Thin dry CO₂ atmosphere; severe daily temperature fluctuations between -88°C at night and -12°C during summer afternoons.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Navigation Controls -->
+        <div class="dossier-controls">
+          <button class="dossier-nav-btn" id="dossier-prev-btn" type="button">
+            <i data-lucide="chevron-left"></i>
+            <span>Previous</span>
+          </button>
+          <button class="dossier-nav-btn" id="dossier-orbit-btn" type="button">
+            <i data-lucide="globe"></i>
+            <span>Back to Orbit</span>
+          </button>
+          <button class="dossier-nav-btn" id="dossier-next-btn" type="button">
+            <span>Next</span>
+            <i data-lucide="chevron-right"></i>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       PLANETARY SCIENCE & GEOLOGIC DOSSIER MODAL
+       ========================================================================= -->
+  <div id="planet-specs-modal" role="dialog" aria-modal="true" aria-labelledby="specs-planet-title" aria-hidden="true">
+    <div class="specs-window">
+      <!-- Close Button -->
+      <button class="specs-close-btn" id="specs-close-x" type="button" aria-label="Close Planetary Dossier">
+        <i data-lucide="x"></i>
+      </button>
+
+      <!-- Modal Header -->
+      <div class="specs-header">
+        <div class="specs-badge">
+          <span class="pulse-dot"></span>
+          <span id="specs-body-badge">MARS // SCIENTIFIC COMPENDIUM</span>
+        </div>
+        <h2 class="specs-title" id="specs-planet-title">Mars Planetary Profile</h2>
+        <p class="specs-subtitle" id="specs-planet-subtitle">Comprehensive astrophysical, atmospheric, and stratigraphic analysis</p>
+      </div>
+
+      <!-- Content Grid -->
+      <div class="specs-content-scroll">
+        <div class="specs-grid">
+          
+          <!-- Column 1: Orbital & Physical Dynamics -->
+          <div class="specs-card">
+            <h3 class="specs-card-title">
+              <i data-lucide="compass"></i>
+              <span>Astrophysical Dimensions</span>
+            </h3>
+            <div class="specs-meta-list">
+              <div class="specs-meta-row">
+                <span class="specs-meta-label">Mean Diameter</span>
+                <span class="specs-meta-val" id="spec-val-diameter">6,779 km</span>
+              </div>
+              <div class="specs-meta-row">
+                <span class="specs-meta-label">Planetary Mass</span>
+                <span class="specs-meta-val" id="spec-val-mass">6.42 × 10²³ kg</span>
+              </div>
+              <div class="specs-meta-row">
+                <span class="specs-meta-label">Mean Density</span>
+                <span class="specs-meta-val" id="spec-val-density">3.93 g/cm³</span>
+              </div>
+              <div class="specs-meta-row">
+                <span class="specs-meta-label">Escape Velocity</span>
+                <span class="specs-meta-val" id="spec-val-escape">5.03 km/s</span>
+              </div>
+              <div class="specs-meta-row">
+                <span class="specs-meta-label">Mean Distance</span>
+                <span class="specs-meta-val" id="spec-val-distance">227.9M km (1.52 AU)</span>
+              </div>
+              <div class="specs-meta-row">
+                <span class="specs-meta-label">Orbital Year</span>
+                <span class="specs-meta-val" id="spec-val-orbit">687 Earth Days</span>
+              </div>
+              <div class="specs-meta-row">
+                <span class="specs-meta-label">Axial Obliquity</span>
+                <span class="specs-meta-val" id="spec-val-tilt">25.19° (4 Seasons)</span>
+              </div>
+              <div class="specs-meta-row">
+                <span class="specs-meta-label">Surface Pressure</span>
+                <span class="specs-meta-val" id="spec-val-pressure">6.10 millibars</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Atmospheric Composition -->
+          <div class="specs-card">
+            <h3 class="specs-card-title">
+              <i data-lucide="wind"></i>
+              <span>Atmospheric Chemistry</span>
+            </h3>
+            <div class="gas-bars-container" id="specs-gas-bars">
+              <!-- Dynamically rendered gas percentage bars -->
+            </div>
+            <div class="specs-note-box">
+              <span class="specs-note-label">Thermal Extremes</span>
+              <p class="specs-note-p" id="spec-val-temprange">-140°C (Winter Poles) to +20°C (Equator at Noon)</p>
+            </div>
+          </div>
+
+          <!-- Column 3: Geological Epochs -->
+          <div class="specs-card specs-card-wide">
+            <h3 class="specs-card-title">
+              <i data-lucide="history"></i>
+              <span>Geological Epochs & Evolution</span>
+            </h3>
+            <div class="epochs-timeline" id="specs-epochs-container">
+              <!-- Dynamically populated geological eras -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       ALL MISSIONS ROSTER GRID (EXPANDED FULLY SCROLLABLE DRAWER)
+       ========================================================================= -->
+  <div id="missions-roster-modal" role="dialog" aria-modal="true" aria-labelledby="roster-planet-title" aria-hidden="true">
+    <div class="specs-window specs-window-wide">
+      <button class="specs-close-btn" id="roster-close-x" type="button" aria-label="Close Missions Roster">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="specs-header">
+        <div class="specs-badge">
+          <span class="pulse-dot"></span>
+          <span id="roster-body-badge">MARS // ALL CATALOGUED RELIC SITES</span>
+        </div>
+        <h2 class="specs-title" id="roster-planet-title">Complete Historical Missions Directory</h2>
+        <p class="specs-subtitle">Browse all historical artifacts. Click any mission card to zoom the 3D globe directly to that landing site.</p>
+      </div>
+      <div class="specs-content-scroll">
+        <div class="roster-grid" id="roster-grid-target">
+          <!-- Dynamically populated mission cards -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modular Scripts (deferred: run in order after the document is parsed) -->
+  <script defer src="data.js?v=2.2"></script>
+  <script defer src="audio.js?v=2.2"></script>
+  <script defer src="textures.js?v=2.2"></script>
+  <script defer src="app.js?v=2.2"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+
+</body>
+</html>
